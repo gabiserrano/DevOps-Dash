@@ -1,5 +1,6 @@
 const express = require('express');
 const { RouterApi } = require("./routes");
+const { handlerConsoleError, handlerOrmError, handlerErrorServer } = require("./middlewares/error.handle")
 
 const createApp = () => {
     const app = express();

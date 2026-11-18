@@ -13,6 +13,9 @@ const createApp = () => {
     });
 
     RouterApi(app);
+    app.use(handlerConsoleError);
+    app.use(handlerOrmError);
+    app.use(handlerErrorServer);
 
     return app;
 };

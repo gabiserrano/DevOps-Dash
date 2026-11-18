@@ -2,7 +2,6 @@ const cors = require('cors');
 
 const { config } = require('./config/config.env');
 const { createApp } = require('./app');
-require('./db/config');
 
 
 const app = createApp();

@@ -1,93 +1,46 @@
-const Joi = require('joi');
+const joi = require('joi');
 
-const id = Joi.number()
-    .integer()
-    .positive()
-    .required();
+const id = joi.number().integer().positive();
+const sucursalId = joi.number().integer().positive().allow(null);
+const fechaInicio = joi.date().iso();
+const fechaFin = joi.date().iso().min(joi.ref('fechaInicio'));
+const estado = joi.string().valid('borrador', 'aprobada', 'pagada');
+const creadaPor = joi.number().integer().positive().allow(null);
+const otrasDeducciones = joi.number().min(0).precision(2);
 
-const campos = {
-    sucursalId: Joi.number()
-        .integer()
-        .positive()
-        .allow(null),
+const limit = joi.number().integer().min(1).max(100);
+const offset = joi.number().integer().min(0);
 
-    fechaInicio: Joi.date()
-        .iso(),
-
-    fechaFin: Joi.date()
-        .iso(),
-
-    estado: Joi.string()
-        .valid('borrador', 'aprobada', 'pagada'),
-
-    creadaPor: Joi.number()
-        .integer()
-        .positive()
-        .allow(null)
-};
-
-// Validar que la fecha final no sea anterior a la inicial
-const validarFechas = (datos, helpers) => {
-    if (datos.fechaInicio && datos.fechaFin &&
-        datos.fechaFin < datos.fechaInicio) {
-        return helpers.message(
-            'La fecha de fin no puede ser anterior a la fecha de inicio'
-        );
-    }
-
-    return datos;
-};
-
-// Validar al crear una planilla
-const crearSchema = Joi.object({
-    sucursalId: campos.sucursalId,
-
-    fechaInicio: campos.fechaInicio.required(),
-
-    fechaFin: campos.fechaFin.required(),
-
-    estado: campos.estado.default('borrador'),
-
-    creadaPor: campos.creadaPor
-}).custom(validarFechas).required();
-
-// Validar al actualizar una planilla
-const actualizarSchema = Joi.object(campos)
-    .min(1)
-    .custom(validarFechas)
-    .required();
-
-// Validar el ID de la planilla
-const idSchema = Joi.object({
-    id
+const generarPlanilla = joi.object({
+    sucursalId,
+    fechaInicio: fechaInicio.required(),
+    fechaFin: fechaFin.required(),
+    creadaPor,
 });
 
-// Validar los filtros de consulta
-const listarSchema = Joi.object({
-    sucursalId: campos.sucursalId,
+const cambiarEstadoPlanilla = joi.object({
+    estado: estado.required(),
+});
 
-    estado: campos.estado,
+const updateDetallePlanilla = joi.object({
+    otrasDeducciones: otrasDeducciones.required(),
+});
 
-    fechaInicio: campos.fechaInicio,
+const getPlanilla = joi.object({
+    id: id.required(),
+});
 
-    fechaFin: campos.fechaFin,
-
-    pagina: Joi.number()
-        .integer()
-        .min(1)
-        .default(1),
-
-    limite: Joi.number()
-        .integer()
-        .min(1)
-        .max(100)
-        .default(20)
+const queryPlanilla = joi.object({
+    limit,
+    offset,
+    sucursalId,
+    estado,
 });
 
 module.exports = {
-    crearSchema,
-    actualizarSchema,
-    idSchema,
-    listarSchema,
-    validarFechas
+    generarPlanilla,
+    cambiarEstadoPlanilla,
+    updateDetallePlanilla,
+    getPlanilla,
+    queryPlanilla,
 };

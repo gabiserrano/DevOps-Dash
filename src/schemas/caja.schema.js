@@ -1,87 +1,54 @@
-const Joi = require('joi');
+const joi = require('joi');
 
-const id = Joi.number()
-    .integer()
-    .positive()
-    .required();
+const id = joi.number().integer().positive();
+const sucursalId = joi.number().integer().positive();
+const usuarioId = joi.number().integer().positive();
+const turno = joi.string().valid('manana', 'tarde', 'noche');
+const montoInicial = joi.number().min(0).precision(2);
+const efectivoReal = joi.number().min(0).precision(2);
+const observaciones = joi.string().max(300).allow(null, '');
+const estado = joi.string().valid('abierta', 'cerrada');
 
-const campos = {
-    sucursalId: Joi.number()
-        .integer()
-        .positive(),
+const limit = joi.number().integer().min(1).max(100);
+const offset = joi.number().integer().min(0);
 
-    usuarioId: Joi.number()
-        .integer()
-        .positive(),
-
-    turno: Joi.string()
-        .valid('manana', 'tarde', 'noche'),
-
-    montoInicial: Joi.number()
-        .min(0)
-        .precision(2),
-
-    observaciones: Joi.string()
-        .trim()
-        .max(300)
-        .allow(null, ''),
-
-    estado: Joi.string()
-        .valid('abierta', 'cerrada')
-};
-
-// Validar la apertura de una caja
-const crearSchema = Joi.object({
-    sucursalId: campos.sucursalId.required(),
-    usuarioId: campos.usuarioId.required(),
-    turno: campos.turno.required(),
-    montoInicial: campos.montoInicial.required(),
-    observaciones: campos.observaciones
-}).required();
-
-// Validar modificaciones permitidas
-const actualizarSchema = Joi.object({
-    observaciones: campos.observaciones
-}).min(1).required();
-
-// Validar los datos del cierre
-const cerrarSchema = Joi.object({
-    efectivoReal: Joi.number()
-        .min(0)
-        .precision(2)
-        .required(),
-
-    observaciones: campos.observaciones
-}).required();
-
-// Validar el ID de la caja
-const idSchema = Joi.object({
-    id
+const abrirCaja = joi.object({
+    sucursalId: sucursalId.required(),
+    usuarioId: usuarioId.required(),
+    turno: turno.required(),
+    montoInicial: montoInicial.required(),
 });
 
-// Validar los filtros de consulta
-const listarSchema = Joi.object({
-    sucursalId: campos.sucursalId,
-    usuarioId: campos.usuarioId,
-    turno: campos.turno,
-    estado: campos.estado,
+const cerrarCaja = joi.object({
+    efectivoReal: efectivoReal.required(),
+    observaciones,
+});
 
-    pagina: Joi.number()
-        .integer()
-        .min(1)
-        .default(1),
+const registrarMovimientoCaja = joi.object({
+    cajaId: id.required(),
+    tipo: joi.string().valid('ingreso', 'egreso').required(),
+    concepto: joi.string().min(3).max(200).required(),
+    monto: joi.number().min(0.01).precision(2).required(),
+    usuarioId: usuarioId.allow(null),
+});
 
-    limite: Joi.number()
-        .integer()
-        .min(1)
-        .max(100)
-        .default(20)
+const getCaja = joi.object({
+    id: id.required(),
+});
+
+const queryCaja = joi.object({
+    limit,
+    offset,
+    sucursalId,
+    usuarioId,
+    estado,
+    turno,
 });
 
 module.exports = {
-    crearSchema,
-    actualizarSchema,
-    cerrarSchema,
-    idSchema,
-    listarSchema
+    abrirCaja,
+    cerrarCaja,
+    registrarMovimientoCaja,
+    getCaja,
+    queryCaja,
 };

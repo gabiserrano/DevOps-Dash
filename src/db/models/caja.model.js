@@ -1,92 +1,130 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config.db');
+const { Model, DataTypes } = require('sequelize');
+const { SUCURSAL_TABLE } = require('./sucursal.model');
+const { USUARIO_TABLE } = require('./usuario.model');
 
-const caja = sequelize.define('caja', {
+const CAJA_TABLE = 'cajas';
+
+const schemaCaja = {
     id: {
+        allowNull: false,
         type: DataTypes.INTEGER,
         primaryKey: true,
-        autoIncrement: true
+        autoIncrement: true,
     },
-
-    sucursal_id: {
-        type: DataTypes.INTEGER,
+    sucursalId: {
         allowNull: false,
-        references: {
-            model: 'sucursales',
-            key: 'id'
-        }
-    },
-
-    usuario_id: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        field: 'sucursal_id',
         references: {
-            model: 'usuarios',
-            key: 'id'
-        }
+            model: SUCURSAL_TABLE,
+            key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'RESTRICT',
     },
-
+    usuarioId: {
+        allowNull: false,
+        type: DataTypes.INTEGER,
+        field: 'usuario_id',
+        references: {
+            model: USUARIO_TABLE,
+            key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'RESTRICT',
+    },
     turno: {
+        allowNull: false,
         type: DataTypes.STRING(15),
-        allowNull: false,
         validate: {
-            isIn: [['Manana', 'Tarde', 'Noche']]
-        }
+            isIn: [['manana', 'tarde', 'noche']],
+        },
     },
-
-    fecha_apertura: {
+    fechaApertura: {
+        allowNull: false,
         type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW
+        field: 'fecha_apertura',
+        defaultValue: DataTypes.NOW,
     },
-
-    monto_inicial: {
+    montoInicial: {
+        allowNull: false,
         type: DataTypes.DECIMAL(12, 2),
-        allowNull: false,
-        validate: { min: 0 }
+        field: 'monto_inicial',
+        validate: {
+            min: 0,
+        },
     },
-
     estado: {
-        type: DataTypes.STRING(10),
         allowNull: false,
+        type: DataTypes.STRING(10),
         defaultValue: 'abierta',
         validate: {
-            isIn: [['abierta', 'cerrada']]
-        }
+            isIn: [['abierta', 'cerrada']],
+        },
     },
-
-    fecha_cierre: {
+    fechaCierre: {
+        allowNull: true,
         type: DataTypes.DATE,
-        allowNull: true
+        field: 'fecha_cierre',
     },
-
-    efectivo_esperado: {
+    efectivoEsperado: {
+        allowNull: true,
         type: DataTypes.DECIMAL(12, 2),
-        allowNull: true
+        field: 'efectivo_esperado',
     },
-
-    efectivo_real: {
+    efectivoReal: {
+        allowNull: true,
         type: DataTypes.DECIMAL(12, 2),
-        allowNull: true
+        field: 'efectivo_real',
     },
-
     diferencia: {
+        allowNull: true,
         type: DataTypes.DECIMAL(12, 2),
-        allowNull: true
     },
-
-    tarjeta_total: {
+    tarjetaTotal: {
+        allowNull: true,
         type: DataTypes.DECIMAL(12, 2),
-        allowNull: true
+        field: 'tarjeta_total',
     },
-
+    digitalTotal: {
+        allowNull: true,
+        type: DataTypes.DECIMAL(12, 2),
+        field: 'digital_total',
+    },
     observaciones: {
+        allowNull: true,
         type: DataTypes.STRING(300),
-        allowNull: true
-    }
-}, {
-    tableName: 'cajas',
-    timestamps: false
-});
+    },
+};
 
-module.exports = Caja;
+class Caja extends Model {
+    static associate(models) {
+        this.belongsTo(models.Sucursal, {
+            as: 'sucursal',
+            foreignKey: 'sucursalId',
+        });
+        this.belongsTo(models.Usuario, {
+            as: 'usuario',
+            foreignKey: 'usuarioId',
+        });
+        this.hasMany(models.MovimientoCaja, {
+            as: 'movimientos',
+            foreignKey: 'cajaId',
+        });
+        this.hasMany(models.Venta, {
+            as: 'ventas',
+            foreignKey: 'cajaId',
+        });
+    }
+
+    static config(sequelize) {
+        return {
+            sequelize,
+            tableName: CAJA_TABLE,
+            modelName: 'Caja',
+            timestamps: false,
+        };
+    }
+}
+
+module.exports = { Caja, CAJA_TABLE, schemaCaja };

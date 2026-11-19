@@ -1,49 +1,58 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config.db');
+const { Model, DataTypes } = require('sequelize');
 
-const IsrTramo = sequelize.define('IsrTramo', {
+const ISR_TRAMO_TABLE = 'isr_tramos';
+
+const schemaIsrTramo = {
     id: {
+        allowNull: false,
         type: DataTypes.INTEGER,
         primaryKey: true,
-        autoIncrement: true
+        autoIncrement: true,
     },
-
     periodo: {
+        allowNull: false,
         type: DataTypes.STRING(10),
-        allowNull: false,
-        defaultValue: 'quincenal'
+        defaultValue: 'quincenal',
     },
-
     desde: {
+        allowNull: false,
         type: DataTypes.DECIMAL(12, 2),
-        allowNull: false
     },
-
     hasta: {
+        allowNull: true,
         type: DataTypes.DECIMAL(12, 2),
-        allowNull: true
     },
-
     porcentaje: {
+        allowNull: false,
         type: DataTypes.DECIMAL(5, 2),
-        allowNull: false
     },
-
-    sobre_exceso: {
-        type: DataTypes.DECIMAL(12, 2),
+    sobreExceso: {
         allowNull: false,
-        defaultValue: 0
+        type: DataTypes.DECIMAL(12, 2),
+        field: 'sobre_exceso',
+        defaultValue: 0,
     },
-
-    cuota_fija: {
-        type: DataTypes.DECIMAL(12, 2),
+    cuotaFija: {
         allowNull: false,
-        defaultValue: 0
+        type: DataTypes.DECIMAL(12, 2),
+        field: 'cuota_fija',
+        defaultValue: 0,
+    },
+};
+
+class IsrTramo extends Model {
+    static associate(models) {
+        // Tabla de configuración/catálogo de tramos ISR (sin relaciones directas por FK)
     }
 
-}, {
-    tableName: 'isr_tramos',
-    timestamps: false
-});
+    static config(sequelize) {
+        return {
+            sequelize,
+            tableName: ISR_TRAMO_TABLE,
+            modelName: 'IsrTramo',
+            timestamps: false,
+        };
+    }
+}
 
-module.exports = IsrTramo;
+module.exports = { IsrTramo, ISR_TRAMO_TABLE, schemaIsrTramo };

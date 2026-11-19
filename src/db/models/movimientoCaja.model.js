@@ -1,61 +1,83 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config.db');
+const { Model, DataTypes } = require('sequelize');
+const { CAJA_TABLE } = require('./caja.model');
+const { USUARIO_TABLE } = require('./usuario.model');
 
-const MovimientoCaja = sequelize.define('MovimientoCaja', {
+const MOVIMIENTO_CAJA_TABLE = 'movimientos_caja';
+
+const schemaMovimientoCaja = {
     id: {
+        allowNull: false,
         type: DataTypes.INTEGER,
         primaryKey: true,
-        autoIncrement: true
+        autoIncrement: true,
     },
-
-    caja_id: {
-        type: DataTypes.INTEGER,
+    cajaId: {
         allowNull: false,
+        type: DataTypes.INTEGER,
+        field: 'caja_id',
         references: {
-            model: 'cajas',
-            key: 'id'
-        }
+            model: CAJA_TABLE,
+            key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'RESTRICT',
     },
-
     tipo: {
+        allowNull: false,
         type: DataTypes.STRING(10),
-        allowNull: false,
         validate: {
-            isIn: [['ingreso', 'egreso']]
-        }
+            isIn: [['ingreso', 'egreso']],
+        },
     },
-
     concepto: {
+        allowNull: false,
         type: DataTypes.STRING(200),
-        allowNull: false
     },
-
     monto: {
+        allowNull: false,
         type: DataTypes.DECIMAL(12, 2),
-        allowNull: false,
         validate: {
-            min: 0.01
-        }
+            min: 0.01,
+        },
     },
-
     fecha: {
-        type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: DataTypes.NOW
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
     },
-
-    usuario_id: {
-        type: DataTypes.INTEGER,
+    usuarioId: {
         allowNull: true,
+        type: DataTypes.INTEGER,
+        field: 'usuario_id',
         references: {
-            model: 'usuarios',
-            key: 'id'
-        }
+            model: USUARIO_TABLE,
+            key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
+    },
+};
+
+class MovimientoCaja extends Model {
+    static associate(models) {
+        this.belongsTo(models.Caja, {
+            as: 'caja',
+            foreignKey: 'cajaId',
+        });
+        this.belongsTo(models.Usuario, {
+            as: 'usuario',
+            foreignKey: 'usuarioId',
+        });
     }
 
-}, {
-    tableName: 'movimientos_caja',
-    timestamps: false
-});
+    static config(sequelize) {
+        return {
+            sequelize,
+            tableName: MOVIMIENTO_CAJA_TABLE,
+            modelName: 'MovimientoCaja',
+            timestamps: false,
+        };
+    }
+}
 
-module.exports = MovimientoCaja;
+module.exports = { MovimientoCaja, MOVIMIENTO_CAJA_TABLE, schemaMovimientoCaja };

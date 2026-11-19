@@ -1,52 +1,78 @@
+const { Model, DataTypes } = require('sequelize');
+const { SUCURSAL_TABLE } = require('./sucursal.model');
+const { INSUMO_TABLE } = require('./insumo.model');
 
-const { DataTypes } = require('sequelize');
-const sequelize = require('../../db/config.db');
+const INVENTARIO_TABLE = 'inventario';
 
-const Inventario = sequelize.define('Inventario', {
+const schemaInventario = {
   id: {
+    allowNull: false,
     type: DataTypes.INTEGER,
     primaryKey: true,
-    autoIncrement: true
+    autoIncrement: true,
   },
-
-  sucursal_id: {
+  sucursalId: {
+    allowNull: false,
     type: DataTypes.INTEGER,
-    allowNull: false,
+    field: 'sucursal_id',
     references: {
-      model: 'sucursales',
-      key: 'id'
-    }
+      model: SUCURSAL_TABLE,
+      key: 'id',
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'RESTRICT',
   },
-
-  insumo_id: {
+  insumoId: {
+    allowNull: false,
     type: DataTypes.INTEGER,
-    allowNull: false,
+    field: 'insumo_id',
     references: {
-      model: 'insumos',
-      key: 'id'
-    }
+      model: INSUMO_TABLE,
+      key: 'id',
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'RESTRICT',
   },
-
-  stock_actual: {
-    type: DataTypes.DECIMAL(12, 3),
+  stockActual: {
     allowNull: false,
-    defaultValue: 0
+    type: DataTypes.DECIMAL(12, 3),
+    field: 'stock_actual',
+    defaultValue: 0,
   },
-
-  stock_minimo: {
-    type: DataTypes.DECIMAL(12, 3),
+  stockMinimo: {
     allowNull: false,
-    defaultValue: 0
+    type: DataTypes.DECIMAL(12, 3),
+    field: 'stock_minimo',
+    defaultValue: 0,
+  },
+};
+
+class Inventario extends Model {
+  static associate(models) {
+    this.belongsTo(models.Sucursal, {
+      as: 'sucursal',
+      foreignKey: 'sucursalId',
+    });
+    this.belongsTo(models.Insumo, {
+      as: 'insumo',
+      foreignKey: 'insumoId',
+    });
   }
-}, {
-  tableName: 'inventario',
-  timestamps: false,
-  indexes: [
-    {
-      unique: true,
-      fields: ['sucursal_id', 'insumo_id']
-    }
-  ]
-});
 
-module.exports = Inventario;
+  static config(sequelize) {
+    return {
+      sequelize,
+      tableName: INVENTARIO_TABLE,
+      modelName: 'Inventario',
+      timestamps: false,
+      indexes: [
+        {
+          unique: true,
+          fields: ['sucursal_id', 'insumo_id'],
+        },
+      ],
+    };
+  }
+}
+
+module.exports = { Inventario, INVENTARIO_TABLE, schemaInventario };

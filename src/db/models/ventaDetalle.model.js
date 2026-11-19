@@ -1,53 +1,76 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config.db');
+const { Model, DataTypes } = require('sequelize');
+const { VENTA_TABLE } = require('./venta.model');
+const { PRODUCTO_TABLE } = require('./producto.model');
 
-const VentaDetalle = sequelize.define('VentaDetalle', {
+const VENTA_DETALLE_TABLE = 'venta_detalle';
+
+const schemaVentaDetalle = {
     id: {
+        allowNull: false,
         type: DataTypes.INTEGER,
         primaryKey: true,
-        autoIncrement: true
+        autoIncrement: true,
     },
-
-    venta_id: {
-        type: DataTypes.INTEGER,
+    ventaId: {
         allowNull: false,
+        type: DataTypes.INTEGER,
+        field: 'venta_id',
         references: {
-            model: 'ventas',
-            key: 'id'
+            model: VENTA_TABLE,
+            key: 'id',
         },
-        onDelete: 'CASCADE'
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
     },
-
-    producto_id: {
-        type: DataTypes.INTEGER,
+    productoId: {
         allowNull: false,
+        type: DataTypes.INTEGER,
+        field: 'producto_id',
         references: {
-            model: 'productos',
-            key: 'id'
-        }
+            model: PRODUCTO_TABLE,
+            key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'RESTRICT',
     },
-
     cantidad: {
-        type: DataTypes.INTEGER,
         allowNull: false,
+        type: DataTypes.INTEGER,
         validate: {
-            min: 1
-        }
+            min: 1,
+        },
     },
-
-    precio_unitario: {
+    precioUnitario: {
+        allowNull: false,
         type: DataTypes.DECIMAL(10, 2),
-        allowNull: false
+        field: 'precio_unitario',
     },
-
     subtotal: {
+        allowNull: false,
         type: DataTypes.DECIMAL(12, 2),
-        allowNull: false
+    },
+};
+
+class VentaDetalle extends Model {
+    static associate(models) {
+        this.belongsTo(models.Venta, {
+            as: 'venta',
+            foreignKey: 'ventaId',
+        });
+        this.belongsTo(models.Producto, {
+            as: 'producto',
+            foreignKey: 'productoId',
+        });
     }
 
-}, {
-    tableName: 'venta_detalle',
-    timestamps: false
-});
+    static config(sequelize) {
+        return {
+            sequelize,
+            tableName: VENTA_DETALLE_TABLE,
+            modelName: 'VentaDetalle',
+            timestamps: false,
+        };
+    }
+}
 
-module.exports = VentaDetalle;
+module.exports = { VentaDetalle, VENTA_DETALLE_TABLE, schemaVentaDetalle };

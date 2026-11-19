@@ -1,21 +1,32 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config.db');
+const { Model, DataTypes } = require('sequelize');
 
-const ParametroNomina = sequelize.define('ParametroNomina', {
+const PARAMETRO_NOMINA_TABLE = 'parametros_nomina';
+
+const schemaParametroNomina = {
     clave: {
+        allowNull: false,
         type: DataTypes.STRING(30),
         primaryKey: true,
-        allowNull: false
     },
-
     valor: {
+        allowNull: false,
         type: DataTypes.DECIMAL(12, 4),
-        allowNull: false
+    },
+};
+
+class ParametroNomina extends Model {
+    static associate(models) {
+        // Tabla de parámetros de configuración de nómina (sin relaciones por FK)
     }
 
-}, {
-    tableName: 'parametros_nomina',
-    timestamps: false
-});
+    static config(sequelize) {
+        return {
+            sequelize,
+            tableName: PARAMETRO_NOMINA_TABLE,
+            modelName: 'ParametroNomina',
+            timestamps: false,
+        };
+    }
+}
 
-module.exports = ParametroNomina;
+module.exports = { ParametroNomina, PARAMETRO_NOMINA_TABLE, schemaParametroNomina };

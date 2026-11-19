@@ -1,59 +1,88 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config.db');
+const { Model, DataTypes } = require('sequelize');
+const { SUCURSAL_TABLE } = require('./sucursal.model');
+const { USUARIO_TABLE } = require('./usuario.model');
 
-const Planilla = sequelize.define('Planilla', {
+const PLANILLA_TABLE = 'planillas';
+
+const schemaPlanilla = {
     id: {
+        allowNull: false,
         type: DataTypes.INTEGER,
         primaryKey: true,
-        autoIncrement: true
+        autoIncrement: true,
     },
-
-    sucursal_id: {
-        type: DataTypes.INTEGER,
+    sucursalId: {
         allowNull: true,
+        type: DataTypes.INTEGER,
+        field: 'sucursal_id',
         references: {
-            model: 'sucursales',
-            key: 'id'
-        }
+            model: SUCURSAL_TABLE,
+            key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
     },
-
-    fecha_inicio: {
-        type: DataTypes.DATEONLY,
-        allowNull: false
-    },
-
-    fecha_fin: {
-        type: DataTypes.DATEONLY,
-        allowNull: false
-    },
-
-    estado: {
-        type: DataTypes.STRING(10),
+    fechaInicio: {
         allowNull: false,
+        type: DataTypes.DATEONLY,
+        field: 'fecha_inicio',
+    },
+    fechaFin: {
+        allowNull: false,
+        type: DataTypes.DATEONLY,
+        field: 'fecha_fin',
+    },
+    estado: {
+        allowNull: false,
+        type: DataTypes.STRING(10),
         defaultValue: 'borrador',
         validate: {
-            isIn: [['borrador', 'aprobada', 'pagada']]
-        }
+            isIn: [['borrador', 'aprobada', 'pagada']],
+        },
     },
-
-    creada_por: {
-        type: DataTypes.INTEGER,
+    creadaPor: {
         allowNull: true,
+        type: DataTypes.INTEGER,
+        field: 'creada_por',
         references: {
-            model: 'usuarios',
-            key: 'id'
-        }
+            model: USUARIO_TABLE,
+            key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
+    },
+};
+
+class Planilla extends Model {
+    static associate(models) {
+        this.belongsTo(models.Sucursal, {
+            as: 'sucursal',
+            foreignKey: 'sucursalId',
+        });
+        this.belongsTo(models.Usuario, {
+            as: 'creador',
+            foreignKey: 'creadaPor',
+        });
+        this.hasMany(models.PlanillaDetalle, {
+            as: 'detalles',
+            foreignKey: 'planillaId',
+        });
     }
 
-}, {
-    tableName: 'planillas',
-    timestamps: false,
-    indexes: [
-        {
-            unique: true,
-            fields: ['sucursal_id', 'fecha_inicio', 'fecha_fin']
-        }
-    ]
-});
+    static config(sequelize) {
+        return {
+            sequelize,
+            tableName: PLANILLA_TABLE,
+            modelName: 'Planilla',
+            timestamps: false,
+            indexes: [
+                {
+                    unique: true,
+                    fields: ['sucursal_id', 'fecha_inicio', 'fecha_fin'],
+                },
+            ],
+        };
+    }
+}
 
-module.exports = Planilla;
+module.exports = { Planilla, PLANILLA_TABLE, schemaPlanilla };

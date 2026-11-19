@@ -1,75 +1,97 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config.db');
+const { Model, DataTypes } = require('sequelize');
+const { PLANILLA_TABLE } = require('./planilla.model');
+const { EMPLEADO_TABLE } = require('./empleado.model');
 
-const PlanillaDetalle = sequelize.define('PlanillaDetalle', {
+const PLANILLA_DETALLE_TABLE = 'planilla_detalle';
+
+const schemaPlanillaDetalle = {
     id: {
+        allowNull: false,
         type: DataTypes.INTEGER,
         primaryKey: true,
-        autoIncrement: true
+        autoIncrement: true,
     },
-
-    planilla_id: {
-        type: DataTypes.INTEGER,
+    planillaId: {
         allowNull: false,
+        type: DataTypes.INTEGER,
+        field: 'planilla_id',
         references: {
-            model: 'planillas',
-            key: 'id'
+            model: PLANILLA_TABLE,
+            key: 'id',
         },
-        onDelete: 'CASCADE'
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
     },
-
-    empleado_id: {
+    empleadoId: {
+        allowNull: false,
         type: DataTypes.INTEGER,
-        allowNull: false,
+        field: 'empleado_id',
         references: {
-            model: 'empleados',
-            key: 'id'
-        }
+            model: EMPLEADO_TABLE,
+            key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'RESTRICT',
     },
-
-    salario_bruto: {
+    salarioBruto: {
+        allowNull: false,
         type: DataTypes.DECIMAL(12, 2),
-        allowNull: false
+        field: 'salario_bruto',
     },
-
     isss: {
-        type: DataTypes.DECIMAL(12, 2),
         allowNull: false,
-        defaultValue: 0
+        type: DataTypes.DECIMAL(12, 2),
+        defaultValue: 0,
     },
-
     afp: {
-        type: DataTypes.DECIMAL(12, 2),
         allowNull: false,
-        defaultValue: 0
+        type: DataTypes.DECIMAL(12, 2),
+        defaultValue: 0,
     },
-
     isr: {
-        type: DataTypes.DECIMAL(12, 2),
         allowNull: false,
-        defaultValue: 0
-    },
-
-    otras_deducciones: {
         type: DataTypes.DECIMAL(12, 2),
+        defaultValue: 0,
+    },
+    otrasDeducciones: {
         allowNull: false,
-        defaultValue: 0
-    },
-
-    salario_neto: {
         type: DataTypes.DECIMAL(12, 2),
-        allowNull: false
+        field: 'otras_deducciones',
+        defaultValue: 0,
+    },
+    salarioNeto: {
+        allowNull: false,
+        type: DataTypes.DECIMAL(12, 2),
+        field: 'salario_neto',
+    },
+};
+
+class PlanillaDetalle extends Model {
+    static associate(models) {
+        this.belongsTo(models.Planilla, {
+            as: 'planilla',
+            foreignKey: 'planillaId',
+        });
+        this.belongsTo(models.Empleado, {
+            as: 'empleado',
+            foreignKey: 'empleadoId',
+        });
     }
 
-}, {
-    tableName: 'planilla_detalle',
-    timestamps: false,
-    indexes: [
-        {
-            unique: true,
-            fields: ['planilla_id', 'empleado_id']
-        }
-    ]
-});
+    static config(sequelize) {
+        return {
+            sequelize,
+            tableName: PLANILLA_DETALLE_TABLE,
+            modelName: 'PlanillaDetalle',
+            timestamps: false,
+            indexes: [
+                {
+                    unique: true,
+                    fields: ['planilla_id', 'empleado_id'],
+                },
+            ],
+        };
+    }
+}
 
-module.exports = PlanillaDetalle;
+module.exports = { PlanillaDetalle, PLANILLA_DETALLE_TABLE, schemaPlanillaDetalle };

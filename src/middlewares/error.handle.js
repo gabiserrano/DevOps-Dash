@@ -18,9 +18,18 @@ function handlerOrmError(err, _req, res, next) {
 }
 
 function handlerErrorServer(err, _req, res, _next) {
-    res.status(500).json({
-        err: err.stack,
-        message: err.message
+    const statusCode =
+        Number.isInteger(err.statusCode) &&
+        err.statusCode >= 400 &&
+        err.statusCode <= 599
+            ? err.statusCode
+            : 500;
+
+    res.status(statusCode).json({
+        statusCode,
+        message: statusCode === 500
+            ? 'Error interno del servidor'
+            : err.message
     });
 }
 

@@ -1,0 +1,86 @@
+const { schemaSucursal, Sucursal } = require('./sucursal.model');
+const { schemaRol, Rol } = require('./rol.model');
+const { schemaEmpleado, Empleado } = require('./empleado.model');
+const { schemaUsuario, Usuario } = require('./usuario.model');
+const { schemaCliente, Cliente } = require('./cliente.model');
+const { schemaProveedor, Proveedor } = require('./proveedor.model');
+const { schemaMetodoPago, MetodoPago } = require('./metodoPago.model');
+const { schemaInsumo, Insumo } = require('./insumo.model');
+const { schemaProducto, Producto } = require('./producto.model');
+const { schemaReceta, Receta } = require('./receta.model');
+const { schemaInventario, Inventario } = require('./inventario.model');
+const { schemaMovimientoInventario, MovimientoInventario } = require('./movimientoInventario.model');
+const { schemaCorrelativo, Correlativo } = require('./correlativo.model');
+const { schemaCaja, Caja } = require('./caja.model');
+const { schemaMovimientoCaja, MovimientoCaja } = require('./movimientoCaja.model');
+const { schemaCompra, Compra } = require('./compra.model');
+const { schemaCompraDetalle, CompraDetalle } = require('./compra.detalle.model');
+const { schemaCuentaPorPagar, CuentaPorPagar } = require('./cuentaPorPagar.model');
+const { schemaPagoCxp, PagoCxp } = require('./pagosCxp.model');
+const { schemaVenta, Venta } = require('./venta.model');
+const { schemaVentaDetalle, VentaDetalle } = require('./ventaDetalle.model');
+const { schemaVentaPago, VentaPago } = require('./ventaPago.model');
+const { schemaIsrTramo, IsrTramo } = require('./isrTramo.model');
+const { schemaParametroNomina, ParametroNomina } = require('./parametroNomina.model');
+const { schemaPlanilla, Planilla } = require('./planilla.model');
+const { schemaPlanillaDetalle, PlanillaDetalle } = require('./planillaDetalle.model');
+
+function setupModels(sequelize) {
+    // 1. Inicialización de modelos (ordenados de catálogos padre a tablas dependientes)
+    Sucursal.init(schemaSucursal, Sucursal.config(sequelize));
+    Rol.init(schemaRol, Rol.config(sequelize));
+    Empleado.init(schemaEmpleado, Empleado.config(sequelize));
+    Usuario.init(schemaUsuario, Usuario.config(sequelize));
+    Cliente.init(schemaCliente, Cliente.config(sequelize));
+    Proveedor.init(schemaProveedor, Proveedor.config(sequelize));
+    MetodoPago.init(schemaMetodoPago, MetodoPago.config(sequelize));
+    Insumo.init(schemaInsumo, Insumo.config(sequelize));
+    Producto.init(schemaProducto, Producto.config(sequelize));
+    Receta.init(schemaReceta, Receta.config(sequelize));
+    Inventario.init(schemaInventario, Inventario.config(sequelize));
+    MovimientoInventario.init(schemaMovimientoInventario, MovimientoInventario.config(sequelize));
+    Correlativo.init(schemaCorrelativo, Correlativo.config(sequelize));
+    Caja.init(schemaCaja, Caja.config(sequelize));
+    MovimientoCaja.init(schemaMovimientoCaja, MovimientoCaja.config(sequelize));
+    Compra.init(schemaCompra, Compra.config(sequelize));
+    CompraDetalle.init(schemaCompraDetalle, CompraDetalle.config(sequelize));
+    CuentaPorPagar.init(schemaCuentaPorPagar, CuentaPorPagar.config(sequelize));
+    PagoCxp.init(schemaPagoCxp, PagoCxp.config(sequelize));
+    Venta.init(schemaVenta, Venta.config(sequelize));
+    VentaDetalle.init(schemaVentaDetalle, VentaDetalle.config(sequelize));
+    VentaPago.init(schemaVentaPago, VentaPago.config(sequelize));
+    IsrTramo.init(schemaIsrTramo, IsrTramo.config(sequelize));
+    ParametroNomina.init(schemaParametroNomina, ParametroNomina.config(sequelize));
+    Planilla.init(schemaPlanilla, Planilla.config(sequelize));
+    PlanillaDetalle.init(schemaPlanillaDetalle, PlanillaDetalle.config(sequelize));
+
+    // 2. Ejecución de asociaciones
+    Sucursal.associate(sequelize.models);
+    Rol.associate(sequelize.models);
+    Empleado.associate(sequelize.models);
+    Usuario.associate(sequelize.models);
+    Cliente.associate(sequelize.models);
+    Proveedor.associate(sequelize.models);
+    MetodoPago.associate(sequelize.models);
+    Insumo.associate(sequelize.models);
+    Producto.associate(sequelize.models);
+    Receta.associate(sequelize.models);
+    Inventario.associate(sequelize.models);
+    MovimientoInventario.associate(sequelize.models);
+    Correlativo.associate(sequelize.models);
+    Caja.associate(sequelize.models);
+    MovimientoCaja.associate(sequelize.models);
+    Compra.associate(sequelize.models);
+    CompraDetalle.associate(sequelize.models);
+    CuentaPorPagar.associate(sequelize.models);
+    PagoCxp.associate(sequelize.models);
+    Venta.associate(sequelize.models);
+    VentaDetalle.associate(sequelize.models);
+    VentaPago.associate(sequelize.models);
+    IsrTramo.associate(sequelize.models);
+    ParametroNomina.associate(sequelize.models);
+    Planilla.associate(sequelize.models);
+    PlanillaDetalle.associate(sequelize.models);
+}
+
+module.exports = setupModels;

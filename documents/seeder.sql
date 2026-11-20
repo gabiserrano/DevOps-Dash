@@ -194,3 +194,5 @@ INSERT INTO clientes (nombre, nit, nrc, giro, direccion, email)
 VALUES
   ('Inversiones Del Valle, S.A. de C.V.', '0614-010110-101-5', '111111-1', 'Servicios de consultoría', 'San Salvador',  'contabilidad@delvalle.sv'),
   ('Comercial Los Pinos, S.A. de C.V.',   '0614-020220-102-6', '222222-2', 'Comercio al por menor',    'Antiguo Cuscatlán', 'admin@lospinos.sv');
+
+

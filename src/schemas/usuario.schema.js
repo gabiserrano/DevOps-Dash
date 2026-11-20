@@ -27,6 +27,7 @@ const updateUsuario = joi.object({
     email,
     password,
     activo,
+
 }).min(1);
 
 const getUsuario = joi.object({

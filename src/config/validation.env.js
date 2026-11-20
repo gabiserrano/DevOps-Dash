@@ -4,6 +4,7 @@ const JoiValidationSchema = Joi.object({
     env: Joi.string().required(),
     port: Joi.number().required(),
     dbUrl: Joi.string().required(),
+    dbUrle2e: Joi.string().required(),
     jwtSecret: Joi.string().required()
 })
 

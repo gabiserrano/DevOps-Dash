@@ -1,17 +1,20 @@
-const { config } = require("../config/config.env")
-const { Sequelize } = require("sequelize")
+const { config } = require('../config/config.env');
+const { Sequelize } = require('sequelize');
+const setupModels = require('./models/index.models');
 
 let options = {
-    dbUrl: config.dbUrl
-}
+    dbUrl: config.dbUrl,
+};
 
 if (config.env === 'e2e') {
-    options.dbUrl = config.dbUrle2e
+    options.dbUrl = config.dbUrle2e;
 }
 
 const sequelize = new Sequelize(options.dbUrl, {
     dialect: 'postgres',
-    logging: config.env === 'dev' ? console.log : false
-})
+    logging: config.env === 'dev' ? console.log : false,
+});
 
-module.exports = sequelize
+setupModels(sequelize);
+
+module.exports = sequelize;

@@ -5,7 +5,7 @@ const service = new ClienteService();
 
 const getClientesController = async (req, res, next) => {
     try {
-        const clientes = await service.findAll();
+        const clientes = await service.findAll(req.query);
         res.json(clientes);
     } catch (error) {
         next(error);

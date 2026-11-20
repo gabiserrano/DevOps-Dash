@@ -1,9 +1,16 @@
 const { Op } = require('sequelize');
-const { models } = require('../db/config.db');
+const sequelize = require('../db/config.db');
+const { HttpError } = require('../helpers/httpError.helper');
+const { escalar, validarImporte } = require('../helpers/math.helper');
+const {
+    calcularConsumoVenta,
+    descontarSalidaVenta,
+    devolverStockAnulacion,
+} = require('../helpers/inventario.helper');
+
+const { models } = sequelize;
 
 class VentaService {
-    
-
     async findAll(query = {}) {
         const {
             limit,
@@ -23,141 +30,109 @@ class VentaService {
             include: [
                 { association: 'detalles' },
                 { association: 'pagos' },
+                { association: 'cliente', attributes: ['id', 'nombre', 'nit', 'nrc'] },
             ],
             order: [['id', 'DESC']],
         };
 
-        if (limit !== undefined) {
-            options.limit = limit;
-        }
-
-        if (offset !== undefined) {
-            options.offset = offset;
-        }
-
-        if (sucursalId !== undefined) {
-            options.where.sucursalId = sucursalId;
-        }
-
-        if (cajaId !== undefined) {
-            options.where.cajaId = cajaId;
-        }
-
-        if (usuarioId !== undefined) {
-            options.where.usuarioId = usuarioId;
-        }
-
-        if (clienteId !== undefined) {
-            options.where.clienteId = clienteId;
-        }
-
-        if (tipoDoc) {
-            options.where.tipoDoc = tipoDoc;
-        }
-
-        if (estado) {
-            options.where.estado = estado;
-        }
+        if (limit !== undefined) options.limit = Number(limit);
+        if (offset !== undefined) options.offset = Number(offset);
+        if (sucursalId !== undefined) options.where.sucursalId = sucursalId;
+        if (cajaId !== undefined) options.where.cajaId = cajaId;
+        if (usuarioId !== undefined) options.where.usuarioId = usuarioId;
+        if (clienteId !== undefined) options.where.clienteId = clienteId;
+        if (tipoDoc) options.where.tipoDoc = tipoDoc;
+        if (estado) options.where.estado = estado;
 
         if (fechaInicio || fechaFin) {
             options.where.fecha = {};
-
-            if (fechaInicio) {
-                options.where.fecha[Op.gte] = fechaInicio;
-            }
-
-            if (fechaFin) {
-                options.where.fecha[Op.lte] = fechaFin;
-            }
+            if (fechaInicio) options.where.fecha[Op.gte] = fechaInicio;
+            if (fechaFin) options.where.fecha[Op.lte] = fechaFin;
         }
 
-        const ventas = await models.Venta.findAll(options);
-        return ventas;
+        return models.Venta.findAll(options);
     }
 
-    
     async findOne(id) {
         const venta = await models.Venta.findByPk(id, {
             include: [
-                { association: 'detalles' },
-                { association: 'pagos' },
+                {
+                    association: 'detalles',
+                    include: [{ association: 'producto', attributes: ['id', 'nombre', 'tipo'] }],
+                },
+                {
+                    association: 'pagos',
+                    include: [{ association: 'metodoPago', attributes: ['id', 'nombre', 'esEfectivo'] }],
+                },
+                { association: 'cliente' },
+                { association: 'sucursal', attributes: ['id', 'nombre'] },
             ],
         });
 
         if (!venta) {
-            const error = new Error(`La venta con ID ${id} no existe`);
-            error.statusCode = 404;
-            throw error;
+            throw new HttpError(404, `La venta con ID ${id} no existe`);
         }
 
         return venta;
     }
 
-    
     async create(data) {
-        const sequelize = models.Venta.sequelize;
+        const subtotalDetalles = data.detalles.reduce((suma, detalle, i) => {
+            const precioCentavos = escalar(detalle.precioUnitario, 2, `detalles[${i}].precioUnitario`);
+            const subtotalEnviado = escalar(detalle.subtotal, 2, `detalles[${i}].subtotal`);
+            const esperado = precioCentavos * BigInt(detalle.cantidad);
 
-        const errorValidacion = (mensaje) => {
-            const error = new Error(mensaje);
-            error.statusCode = 400;
-            return error;
-        };
+            if (subtotalEnviado !== esperado) {
+                throw new HttpError(400, `detalles[${i}].subtotal no coincide con su cantidad y precio`);
+            }
+            return suma + esperado;
+        }, 0n);
 
-        
-        const centavos = (valor) => Math.round(Number(valor) * 100);
+        const subtotal = escalar(data.subtotal, 2, 'subtotal');
+        const iva = escalar(data.iva, 2, 'iva');
+        const total = escalar(data.total, 2, 'total');
 
-        
-        const subtotalDetalles = data.detalles.reduce(
-            (suma, detalle) => {
-                const esperado =
-                    centavos(detalle.precioUnitario) * detalle.cantidad;
+        [subtotal, iva, total].forEach(validarImporte);
 
-                if (centavos(detalle.subtotal) !== esperado) {
-                    throw errorValidacion(
-                        'El subtotal de un detalle no coincide con su cantidad y precio'
-                    );
-                }
-
-                return suma + esperado;
-            },
-            0
-        );
-
-        const subtotal = centavos(data.subtotal);
-        const iva = centavos(data.iva);
-        const total = centavos(data.total);
-
-        
         if (subtotalDetalles !== subtotal) {
-            throw errorValidacion(
-                'El subtotal de la venta no coincide con sus detalles'
-            );
+            throw new HttpError(400, 'El subtotal de la venta no coincide con sus detalles');
         }
-
-        
         if (subtotal + iva !== total) {
-            throw errorValidacion(
-                'El total debe ser igual al subtotal más el IVA'
-            );
+            throw new HttpError(400, 'El total debe ser igual al subtotal más el IVA');
         }
 
-        
         const totalPagos = data.pagos.reduce(
-            (suma, pago) => suma + centavos(pago.monto),
-            0
+            (suma, pago, i) => suma + escalar(pago.monto, 2, `pagos[${i}].monto`),
+            0n
         );
 
         if (totalPagos !== total) {
-            throw errorValidacion(
-                'La suma de los pagos debe coincidir con el total de la venta'
-            );
+            throw new HttpError(400, 'La suma de los pagos debe coincidir con el total de la venta');
         }
 
-        
-        return sequelize.transaction(async (transaction) => {
-            const serie = data.serie || 'A';
+        if (data.tipoDoc === 'CCF' && !data.clienteId) {
+            throw new HttpError(400, 'El cliente es obligatorio para emitir un CCF');
+        }
 
-            
+        const ventaId = await sequelize.transaction(async (transaction) => {
+            const caja = await models.Caja.findByPk(data.cajaId, { transaction });
+            if (!caja || caja.estado !== 'abierta') {
+                throw new HttpError(400, 'La caja no existe o ya se encuentra cerrada');
+            }
+            if (Number(caja.sucursalId) !== Number(data.sucursalId)) {
+                throw new HttpError(400, 'La caja no pertenece a la sucursal indicada');
+            }
+
+            if (data.clienteId) {
+                const cliente = await models.Cliente.findByPk(data.clienteId, { transaction });
+                if (!cliente) {
+                    throw new HttpError(404, `El cliente con ID ${data.clienteId} no existe`);
+                }
+            }
+
+            const consumoPorInsumo = await calcularConsumoVenta(models, data.detalles, transaction);
+
+            const serie = data.serie || 'A';
             const correlativo = await models.Correlativo.findOne({
                 where: {
                     sucursalId: data.sucursalId,
@@ -169,23 +144,12 @@ class VentaService {
             });
 
             if (!correlativo) {
-                const error = new Error(
-                    'No existe un correlativo configurado para esta sucursal, documento y serie'
-                );
-                error.statusCode = 404;
-                throw error;
+                throw new HttpError(404, 'No existe un correlativo configurado para esta sucursal, documento y serie');
             }
 
-            
             const numeroDoc = correlativo.ultimoNumero + 1;
+            await correlativo.update({ ultimoNumero: numeroDoc }, { transaction });
 
-            
-            await correlativo.update(
-                { ultimoNumero: numeroDoc },
-                { transaction }
-            );
-
-            
             const venta = await models.Venta.create(
                 {
                     sucursalId: data.sucursalId,
@@ -202,41 +166,65 @@ class VentaService {
                 { transaction }
             );
 
-            
-            const detalles = data.detalles.map((detalle) => ({
-                ...detalle,
-                ventaId: venta.id,
-            }));
+            await models.VentaDetalle.bulkCreate(
+                data.detalles.map((d) => ({ ...d, ventaId: venta.id })),
+                { transaction, validate: true }
+            );
 
-            
-            await models.VentaDetalle.bulkCreate(detalles, {
+            await models.VentaPago.bulkCreate(
+                data.pagos.map((p) => ({ ...p, ventaId: venta.id })),
+                { transaction, validate: true }
+            );
+
+            await descontarSalidaVenta(
+                models,
+                {
+                    sucursalId: data.sucursalId,
+                    consumoPorInsumo,
+                    ventaId: venta.id,
+                    usuarioId: data.usuarioId,
+                },
+                transaction
+            );
+
+            return venta.id;
+        });
+
+        return this.findOne(ventaId);
+    }
+
+    async anular(id, usuarioId = null) {
+        return sequelize.transaction(async (transaction) => {
+            const venta = await models.Venta.findByPk(id, {
+                include: [{ association: 'detalles' }],
                 transaction,
-                validate: true,
+                lock: transaction.LOCK.UPDATE,
             });
 
-            
-            const pagos = data.pagos.map((pago) => ({
-                ...pago,
-                ventaId: venta.id,
-            }));
+            if (!venta) {
+                throw new HttpError(404, `La venta con ID ${id} no existe`);
+            }
+            if (venta.estado === 'anulada') {
+                throw new HttpError(400, 'La venta ya se encuentra anulada');
+            }
 
-            
-            await models.VentaPago.bulkCreate(pagos, {
-                transaction,
-                validate: true,
-            });
+            const consumoPorInsumo = await calcularConsumoVenta(models, venta.detalles, transaction);
 
-            
-            return models.Venta.findByPk(venta.id, {
-                include: [
-                    { association: 'detalles' },
-                    { association: 'pagos' },
-                ],
-                transaction,
-            });
+            await devolverStockAnulacion(
+                models,
+                {
+                    sucursalId: venta.sucursalId,
+                    consumoPorInsumo,
+                    ventaId: venta.id,
+                    usuarioId: usuarioId ?? venta.usuarioId,
+                },
+                transaction
+            );
+
+            await venta.update({ estado: 'anulada' }, { transaction });
+            return this.findOne(venta.id);
         });
     }
 }
 
 module.exports = { VentaService };
-

@@ -9,6 +9,11 @@ async function startServer() {
         await sequelize.authenticate();
         console.log('Conexión a PostgreSQL establecida correctamente.');
 
+        if (process.env.DB_SYNC === 'true') {
+            await sequelize.sync({ alter: true });
+            console.log('Tablas sincronizadas con los modelos.');
+        }
+
         app.listen(config.port, () => {
             console.log('Api in port:', config.port);
         });

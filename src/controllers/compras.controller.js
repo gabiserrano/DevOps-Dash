@@ -1,5 +1,7 @@
 
-const comprasService = require('../services/compras.service');
+const { CompraService } = require('../services/compras.service');
+
+const comprasService = new CompraService();
 
 // Obtener todas las compras
 const listar = async (req, res, next) => {

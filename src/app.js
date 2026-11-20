@@ -9,6 +9,8 @@ const createApp = () => {
     app.use(cors());
     app.use(express.json());
 
+    require("./utils")
+
     app.get('/', (_req, res) => {
         res.status(200).json({
             Greeting: 'Hello my RestApi',

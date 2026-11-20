@@ -19,8 +19,7 @@ class CajaService {
             where: {},
             include: [
                 { association: 'sucursal', attributes: ['id', 'nombre'] },
-                { association: 'usuarioApertura', attributes: ['id', 'nombre', 'email'] },
-                { association: 'usuarioCierre', attributes: ['id', 'nombre', 'email'] },
+                { association: 'usuario', attributes: ['id', 'email'] },
             ],
             order: [['id', 'DESC']],
         };

@@ -1,4 +1,3 @@
-
 const { CompraService } = require('../services/compras.service');
 
 const comprasService = new CompraService();
@@ -8,7 +7,7 @@ const listar = async (req, res, next) => {
   try {
     const filtros = res.locals.validatedQuery || req.query;
 
-    const compras = await comprasService.listar(filtros);
+    const compras = await comprasService.findAll(filtros);
 
     return res.status(200).json(compras);
   } catch (error) {
@@ -21,7 +20,7 @@ const obtener = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const compra = await comprasService.obtener(id);
+    const compra = await comprasService.findOne(id);
 
     return res.status(200).json(compra);
   } catch (error) {
@@ -34,7 +33,7 @@ const crear = async (req, res, next) => {
   try {
     const datos = req.body;
 
-    const compra = await comprasService.crear(datos);
+    const compra = await comprasService.create(datos);
 
     return res.status(201).json(compra);
   } catch (error) {
@@ -49,7 +48,7 @@ const registrarPago = async (req, res, next) => {
     const datos = req.body;
 
     // Aquí id representa el ID de la cuenta por pagar
-    const pago = await comprasService.registrarPago(id, datos);
+    const pago = await comprasService.registrarPagoCxp(id, datos);
 
     return res.status(201).json(pago);
   } catch (error) {
@@ -61,5 +60,5 @@ module.exports = {
   listar,
   obtener,
   crear,
-  registrarPago
+  registrarPago,
 };

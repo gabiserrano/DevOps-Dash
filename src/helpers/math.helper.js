@@ -23,6 +23,13 @@ function aDecimalTexto(valorEscalado, decimales) {
     return `${entera}.${decimal}`;
 }
 
+function centavosConSignoATexto(valor) {
+    const negativo = valor < 0n;
+    const abs = negativo ? -valor : valor;
+    const texto = centavosATexto(abs);
+    return negativo ? `-${texto}` : texto;
+}
+
 function centavosATexto(valor) {
     return aDecimalTexto(valor, 2);
 }
@@ -54,4 +61,5 @@ module.exports = {
     costoATexto,
     redondearPositivo,
     validarImporte,
+    centavosConSignoATexto
 };

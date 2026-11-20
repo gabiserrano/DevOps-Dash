@@ -13,6 +13,15 @@ class ProductoService {
                     association: 'insumo',
                     attributes: ['id', 'nombre', 'unidad', 'costoPromedio'],
                 },
+                {
+                    association: 'receta',
+                    include: [
+                        {
+                            association: 'insumo',
+                            attributes: ['id', 'nombre', 'unidad', 'costoPromedio'],
+                        },
+                    ],
+                },
             ],
             order: [['id', 'ASC']],
         };

@@ -56,7 +56,7 @@ class AuthService {
         const usuario = await models.Usuario.findByPk(userId, {
             attributes: { exclude: ['passwordHash'] },
             include: [
-                { association: 'rol', attributes: ['id', 'nombre', 'descripcion'] },
+                { association: 'rol', attributes: ['id', 'nombre'] },
                 { association: 'sucursal', attributes: ['id', 'nombre', 'direccion'] },
                 { association: 'empleado', attributes: ['id', 'nombres', 'apellidos', 'puesto'] },
             ],

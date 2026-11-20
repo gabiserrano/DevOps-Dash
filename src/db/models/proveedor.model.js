@@ -56,6 +56,12 @@ class Proveedor extends Model {
       as: 'cuentasPorPagar',
       foreignKey: 'proveedorId',
     });
+    this.belongsToMany(models.Insumo, {
+      as: 'insumos',
+      through: models.InsumoProveedor,
+      foreignKey: 'proveedorId',
+      otherKey: 'insumoId',
+    });
   }
 
   static config(sequelize) {

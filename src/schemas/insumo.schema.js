@@ -12,16 +12,22 @@ const search = joi.string().max(120);
 
 const createInsumo = joi.object({
     nombre: nombre.required(),
+    sku: joi.string().max(30).allow(null, ''),
+    categoria: joi.string().max(50).allow(null, ''),
     unidad: unidad.required(),
     costoPromedio,
     activo,
+    proveedorIds: joi.array().items(joi.number().integer().positive()),
 });
 
 const updateInsumo = joi.object({
     nombre,
+    sku: joi.string().max(30).allow(null, ''),
+    categoria: joi.string().max(50).allow(null, ''),
     unidad,
     costoPromedio,
     activo,
+    proveedorIds: joi.array().items(joi.number().integer().positive()),
 });
 
 const getInsumo = joi.object({

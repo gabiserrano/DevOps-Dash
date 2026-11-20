@@ -68,6 +68,10 @@ class CuentaPorPagar extends Model {
       as: 'proveedor',
       foreignKey: 'proveedorId',
     });
+    this.hasMany(models.PagoCxp, {
+      as: 'pagos',
+      foreignKey: 'cxpId',
+    });
   }
 
   static config(sequelize) {

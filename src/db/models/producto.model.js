@@ -19,6 +19,11 @@ const schemaProducto = {
         allowNull: true,
         type: DataTypes.STRING(50),
     },
+    sku: {
+        allowNull: true,
+        type: DataTypes.STRING(30),
+        unique: true,
+    },
     tipo: {
         allowNull: false,
         type: DataTypes.STRING(10),

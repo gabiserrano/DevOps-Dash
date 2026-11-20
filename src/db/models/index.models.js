@@ -1,5 +1,7 @@
 const { schemaSucursal, Sucursal } = require('./sucursal.model');
 const { schemaRol, Rol } = require('./rol.model');
+const { schemaCategoria, Categoria } = require('./categoria.model');
+const { schemaInsumoProveedor, InsumoProveedor } = require('./insumoProveedor.model');
 const { schemaEmpleado, Empleado } = require('./empleado.model');
 const { schemaUsuario, Usuario } = require('./usuario.model');
 const { schemaCliente, Cliente } = require('./cliente.model');
@@ -29,6 +31,8 @@ function setupModels(sequelize) {
     // 1. Inicialización de modelos (ordenados de catálogos padre a tablas dependientes)
     Sucursal.init(schemaSucursal, Sucursal.config(sequelize));
     Rol.init(schemaRol, Rol.config(sequelize));
+    Categoria.init(schemaCategoria, Categoria.config(sequelize));
+    InsumoProveedor.init(schemaInsumoProveedor, InsumoProveedor.config(sequelize));
     Empleado.init(schemaEmpleado, Empleado.config(sequelize));
     Usuario.init(schemaUsuario, Usuario.config(sequelize));
     Cliente.init(schemaCliente, Cliente.config(sequelize));
@@ -57,6 +61,8 @@ function setupModels(sequelize) {
     // 2. Ejecución de asociaciones
     Sucursal.associate(sequelize.models);
     Rol.associate(sequelize.models);
+    Categoria.associate(sequelize.models);
+    InsumoProveedor.associate(sequelize.models);
     Empleado.associate(sequelize.models);
     Usuario.associate(sequelize.models);
     Cliente.associate(sequelize.models);

@@ -19,8 +19,7 @@ class CajaService {
             where: {},
             include: [
                 { association: 'sucursal', attributes: ['id', 'nombre'] },
-                { association: 'usuarioApertura', attributes: ['id', 'nombre', 'email'] },
-                { association: 'usuarioCierre', attributes: ['id', 'nombre', 'email'] },
+                { association: 'usuario', attributes: ['id', 'email'] },
             ],
             order: [['id', 'DESC']],
         };
@@ -43,11 +42,10 @@ class CajaService {
         const caja = await models.Caja.findByPk(id, {
             include: [
                 { association: 'sucursal', attributes: ['id', 'nombre'] },
-                { association: 'usuarioApertura', attributes: ['id', 'nombre', 'email'] },
-                { association: 'usuarioCierre', attributes: ['id', 'nombre', 'email'] },
+                { association: 'usuario', attributes: ['id', 'email'] },
                 {
                     association: 'movimientos',
-                    include: [{ association: 'usuario', attributes: ['id', 'nombre'] }],
+                    include: [{ association: 'usuario', attributes: ['id', 'email'] }],
                 },
             ],
         });
@@ -68,7 +66,7 @@ class CajaService {
             },
             include: [
                 { association: 'sucursal', attributes: ['id', 'nombre'] },
-                { association: 'usuarioApertura', attributes: ['id', 'nombre', 'email'] },
+                { association: 'usuario', attributes: ['id', 'email'] },
                 { association: 'movimientos' },
             ],
         });
@@ -110,7 +108,8 @@ class CajaService {
             const nuevaCaja = await models.Caja.create(
                 {
                     sucursalId: data.sucursalId,
-                    usuarioAperturaId: usuarioId,
+                    usuarioId,
+                    turno: data.turno,
                     montoInicial: centavosATexto(montoInicialCentavos),
                     estado: 'abierta',
                 },
@@ -148,7 +147,7 @@ class CajaService {
                     cajaId: caja.id,
                     tipo: data.tipo, // 'ingreso' | 'egreso'
                     monto: centavosATexto(montoCentavos),
-                    descripcion: data.descripcion.trim(),
+                    concepto: data.concepto.trim(),
                     usuarioId,
                 },
                 { transaction }
@@ -233,7 +232,6 @@ class CajaService {
 
             await caja.update(
                 {
-                    usuarioCierreId: usuarioId,
                     fechaCierre: new Date(),
                     efectivoEsperado: centavosConSignoATexto(efectivoEsperado),
                     efectivoReal: centavosATexto(efectivoRealCentavos),

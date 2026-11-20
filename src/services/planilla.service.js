@@ -88,11 +88,12 @@ class PlanillaService {
                 throw new HttpError(400, 'La sucursal indicada no existe o está inactiva');
             }
 
-            // Evita duplicar planillas para el mismo período y sucursal
+            // Evita duplicar planillas para el mismo rango de fechas y sucursal
             const planillaExistente = await models.Planilla.findOne({
                 where: {
                     sucursalId: data.sucursalId,
-                    periodo: data.periodo.trim(),
+                    fechaInicio: data.fechaInicio,
+                    fechaFin: data.fechaFin,
                 },
                 transaction,
             });
@@ -100,7 +101,7 @@ class PlanillaService {
             if (planillaExistente) {
                 throw new HttpError(
                     409,
-                    `Ya existe una planilla registrada para el período "${data.periodo}" en esta sucursal`
+                    `Ya existe una planilla registrada del ${data.fechaInicio} al ${data.fechaFin} en esta sucursal`
                 );
             }
 
@@ -125,6 +126,7 @@ class PlanillaService {
 
             const detallesPayload = empleados.map((emp) => {
                 const salarioMensual = escalarDesdeBd(emp.salarioMensual, 2);
+                // La planilla es quincenal: la mitad del salario mensual.
                 const salarioBase = redondearPositivo(salarioMensual, 2n);
 
                 // ISSS 3% con techo quincenal de $500.00
@@ -151,7 +153,7 @@ class PlanillaService {
 
                 return {
                     empleadoId: emp.id,
-                    salarioBase: centavosATexto(salarioBase),
+                    salarioBruto: centavosATexto(salarioBase),
                     isss: centavosATexto(isss),
                     afp: centavosATexto(afp),
                     isr: centavosATexto(isr),
@@ -163,15 +165,10 @@ class PlanillaService {
             const nuevaPlanilla = await models.Planilla.create(
                 {
                     sucursalId: data.sucursalId,
-                    periodo: data.periodo.trim(),
                     fechaInicio: data.fechaInicio,
                     fechaFin: data.fechaFin,
-                    totalBruto: centavosATexto(totalBruto),
-                    totalIsss: centavosATexto(totalIsss),
-                    totalAfp: centavosATexto(totalAfp),
-                    totalIsr: centavosATexto(totalIsr),
-                    totalNeto: centavosATexto(totalNeto),
                     estado: 'borrador',
+                    creadaPor: data.creadaPor ?? null,
                 },
                 { transaction }
             );

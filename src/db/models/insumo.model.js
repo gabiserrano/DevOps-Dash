@@ -14,6 +14,15 @@ const schemaInsumo = {
     type: DataTypes.STRING(120),
     unique: true,
   },
+  sku: {
+    allowNull: true,
+    type: DataTypes.STRING(30),
+    unique: true,
+  },
+  categoria: {
+    allowNull: true,
+    type: DataTypes.STRING(50),
+  },
   unidad: {
     allowNull: false,
     type: DataTypes.STRING(10),
@@ -52,6 +61,12 @@ class Insumo extends Model {
     this.hasMany(models.Receta, {
       as: 'recetas',
       foreignKey: 'insumoId',
+    });
+    this.belongsToMany(models.Proveedor, {
+      as: 'proveedores',
+      through: models.InsumoProveedor,
+      foreignKey: 'insumoId',
+      otherKey: 'proveedorId',
     });
   }
   static config(sequelize) {

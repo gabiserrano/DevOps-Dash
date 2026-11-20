@@ -30,8 +30,13 @@ class CompraService {
     const options = {
       where: {},
       include: [
-        { association: 'proveedor', attributes: ['id', 'nombre'] },
+        { association: 'proveedor', attributes: ['id', 'nombre', 'diasCredito'] },
         { association: 'sucursal', attributes: ['id', 'nombre'] },
+        {
+          association: 'detalles',
+          include: [{ association: 'insumo', attributes: ['id', 'nombre', 'unidad'] }],
+        },
+        { association: 'cuentaPorPagar', attributes: ['id', 'estado', 'saldo'] },
       ],
       order: [['id', 'DESC']],
     };

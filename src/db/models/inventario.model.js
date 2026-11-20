@@ -45,6 +45,12 @@ const schemaInventario = {
     field: 'stock_minimo',
     defaultValue: 0,
   },
+  actualizadoEn: {
+    allowNull: false,
+    type: DataTypes.DATE,
+    field: 'actualizado_en',
+    defaultValue: DataTypes.NOW,
+  },
 };
 
 class Inventario extends Model {

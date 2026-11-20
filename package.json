@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "nodemon src/main.js",
     "start": "node src/main.js",
+    "db:seed": "node scripts/seed.js",
+    "db:migrate": "node scripts/migrate.js",
+    "smoke": "bash scripts/smoke.sh",
     "e2e": "NODE_ENV=e2e jest --config ./jest-e2e.json --detectOpenHandles --verbose --forceExit --runInBand"
   },
   "author": "",

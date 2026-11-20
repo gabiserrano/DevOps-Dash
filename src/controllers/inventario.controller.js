@@ -36,6 +36,18 @@ const updateStockMinimoController = async (req, res, next) => {
     }
 };
 
+const setStockMinimoController = async (req, res, next) => {
+    try {
+        const inventario = await service.setStockMinimo(req.body);
+        res.status(200).json({
+            message: 'Stock mínimo configurado exitosamente',
+            data: inventario,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 const registrarAjusteInventarioController = async (req, res, next) => {
     try {
         const usuarioId = req.user.sub;
@@ -53,5 +65,6 @@ module.exports = {
     getInventariosController,
     getMovimientosInventarioController,
     updateStockMinimoController,
+    setStockMinimoController,
     registrarAjusteInventarioController,
 };

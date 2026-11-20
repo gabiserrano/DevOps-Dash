@@ -1,11 +1,11 @@
 const { Router } = require('express');
 const passport = require('passport');
 const { validationSchema } = require('../middlewares/validation.schema');
-const { checkRoles } = require('../middlewares/auth.handler');
+const { checkRoles } = require('../middlewares/auth.handle');
 const {
     abrirCaja,
     cerrarCaja,
-    movimientoCaja,
+    registrarMovimientoCaja,
     getCaja,
     queryCaja,
 } = require('../schemas/caja.schema');
@@ -52,7 +52,7 @@ cajaRouter.post(
 cajaRouter.post(
     '/:id/movimientos',
     validationSchema(getCaja, 'params'),
-    validationSchema(movimientoCaja, 'body'),
+    validationSchema(registrarMovimientoCaja, 'body'),
     registrarMovimientoCajaController
 );
 

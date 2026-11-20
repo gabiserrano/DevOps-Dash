@@ -16,6 +16,12 @@ const updateStockMinimo = joi.object({
     stockMinimo: stockMinimo.required(),
 });
 
+const setStockMinimo = joi.object({
+    sucursalId: sucursalId.required(),
+    insumoId: insumoId.required(),
+    stockMinimo: stockMinimo.required(),
+});
+
 const ajusteInventario = joi.object({
     sucursalId: sucursalId.required(),
     insumoId: insumoId.required(),
@@ -37,9 +43,22 @@ const queryInventario = joi.object({
     bajoStock,
 });
 
+const queryMovimientoInventario = joi.object({
+    limit,
+    offset,
+    sucursalId,
+    insumoId,
+    tipo: joi.string().valid('entrada', 'salida', 'ajuste'),
+    motivo: joi.string().max(30),
+    fechaInicio: joi.date().iso(),
+    fechaFin: joi.date().iso(),
+});
+
 module.exports = {
     updateStockMinimo,
+    setStockMinimo,
     ajusteInventario,
     getInventario,
     queryInventario,
+    queryMovimientoInventario,
 };

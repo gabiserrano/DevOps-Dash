@@ -1,4 +1,5 @@
 const { Router } = require('express');
+const { authRouter } = require('./auth.router');
 const { productoRouter } = require('./producto.router');
 const ventaRouter = require('./venta.router');
 const { clienteRouter } = require('./cliente.router');
@@ -14,12 +15,17 @@ const { planillaRouter } = require('./planilla.router');
 
 const { rolRouter } = require('./rol.router');
 const { usuarioRouter } = require('./usuario.router');
+const { metodoPagoRouter } = require('./metodoPago.router');
+const { categoriaRouter } = require('./categoria.router');
 
 const RouterApi = (app) => {
     const router = Router();
 
+    router.use('/auth', authRouter);
     router.use('/roles', rolRouter);
     router.use('/usuarios', usuarioRouter);
+    router.use('/metodos-pago', metodoPagoRouter);
+    router.use('/categorias', categoriaRouter);
     router.use('/producto', productoRouter);
     router.use('/ventas', ventaRouter);
     router.use('/clientes', clienteRouter);

@@ -19,8 +19,16 @@ class InventarioService {
                 { association: 'sucursal', attributes: ['id', 'nombre'] },
                 {
                     association: 'insumo',
-                    attributes: ['id', 'nombre', 'unidad', 'costoPromedio', 'activo'],
+                    attributes: ['id', 'nombre', 'sku', 'categoria', 'unidad', 'costoPromedio', 'activo'],
                     where: {},
+                    include: [
+                        {
+                            association: 'proveedores',
+                            attributes: ['id', 'nombre'],
+                            through: { attributes: [] },
+                            required: false,
+                        },
+                    ],
                 },
             ],
             order: [['id', 'ASC']],
@@ -50,7 +58,7 @@ class InventarioService {
         const inventario = await models.Inventario.findByPk(id, {
             include: [
                 { association: 'sucursal', attributes: ['id', 'nombre'] },
-                { association: 'insumo', attributes: ['id', 'nombre', 'unidad', 'costoPromedio', 'activo'] },
+                { association: 'insumo', attributes: ['id', 'nombre', 'sku', 'categoria', 'unidad', 'costoPromedio', 'activo'] },
             ],
         });
 
@@ -67,9 +75,38 @@ class InventarioService {
 
         await inventario.update({
             stockMinimo: cantidadATexto(stockMinimoEscalado),
+            actualizadoEn: new Date(),
         });
 
         return this.findOne(id);
+    }
+
+    /**
+     * Fija el mínimo de un insumo en una sucursal, creando la fila de
+     * inventario si todavía no existe (stock 0).
+     */
+    async setStockMinimo(data) {
+        const stockMinimoEscalado = escalar(data.stockMinimo, 3, 'stockMinimo');
+
+        const [inventario] = await models.Inventario.findOrCreate({
+            where: {
+                sucursalId: data.sucursalId,
+                insumoId: data.insumoId,
+            },
+            defaults: {
+                sucursalId: data.sucursalId,
+                insumoId: data.insumoId,
+                stockActual: '0.000',
+                stockMinimo: cantidadATexto(stockMinimoEscalado),
+            },
+        });
+
+        await inventario.update({
+            stockMinimo: cantidadATexto(stockMinimoEscalado),
+            actualizadoEn: new Date(),
+        });
+
+        return this.findOne(inventario.id);
     }
 
     async registrarAjuste(data, usuarioId) {
@@ -119,12 +156,18 @@ class InventarioService {
                     );
                 }
                 nuevoStock = stockActual - cantidadEscalada;
+            } else if (data.tipo === 'ajuste') {
+                // Ajuste por inventario físico: la cantidad enviada es el stock final.
+                nuevoStock = cantidadEscalada;
             } else {
-                throw new HttpError(400, 'El tipo de ajuste debe ser "entrada" o "salida"');
+                throw new HttpError(400, 'El tipo de ajuste debe ser "entrada", "salida" o "ajuste"');
             }
 
             await inventario.update(
-                { stockActual: cantidadATexto(nuevoStock) },
+                {
+                    stockActual: cantidadATexto(nuevoStock),
+                    actualizadoEn: new Date(),
+                },
                 { transaction }
             );
 
@@ -164,7 +207,7 @@ class InventarioService {
             include: [
                 { association: 'sucursal', attributes: ['id', 'nombre'] },
                 { association: 'insumo', attributes: ['id', 'nombre', 'unidad'] },
-                { association: 'usuario', attributes: ['id', 'nombre', 'email'] },
+                { association: 'usuario', attributes: ['id', 'email'] },
             ],
             order: [['id', 'DESC']],
         };
@@ -177,9 +220,9 @@ class InventarioService {
         if (motivo) options.where.motivo = motivo;
 
         if (fechaInicio || fechaFin) {
-            options.where.createdAt = {};
-            if (fechaInicio) options.where.createdAt[Op.gte] = fechaInicio;
-            if (fechaFin) options.where.createdAt[Op.lte] = fechaFin;
+            options.where.fecha = {};
+            if (fechaInicio) options.where.fecha[Op.gte] = fechaInicio;
+            if (fechaFin) options.where.fecha[Op.lte] = fechaFin;
         }
 
         return models.MovimientoInventario.findAll(options);

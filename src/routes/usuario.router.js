@@ -22,7 +22,7 @@ const usuarioRouter = Router();
 
 usuarioRouter.use(
     passport.authenticate('jwt', { session: false }),
-    checkRoles('gerente')
+    checkRoles('admin', 'gerente')
 );
 
 usuarioRouter.get(

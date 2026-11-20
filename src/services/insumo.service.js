@@ -2,6 +2,13 @@
 const { Op } = require('sequelize');
 const { models } = require('../db/config.db');
 
+const includeProveedores = {
+    association: 'proveedores',
+    attributes: ['id', 'nombre'],
+    through: { attributes: [] },
+    required: false,
+};
+
 class InsumoService {
 
     async findAll(query = {}) {
@@ -9,6 +16,7 @@ class InsumoService {
 
         const options = {
             where: {},
+            include: [includeProveedores],
             order: [['id', 'ASC']],
         };
 
@@ -25,9 +33,10 @@ class InsumoService {
         }
 
         if (search) {
-            options.where.nombre = {
-                [Op.iLike]: `%${search}%`,
-            };
+            options.where[Op.or] = [
+                { nombre: { [Op.iLike]: `%${search}%` } },
+                { sku: { [Op.iLike]: `%${search}%` } },
+            ];
         }
 
         return await models.Insumo.findAll(options);
@@ -35,7 +44,7 @@ class InsumoService {
 
     // GET /:id - Obtener insumo por ID
     async findOne(id) {
-        const insumo = await models.Insumo.findByPk(id);
+        const insumo = await models.Insumo.findByPk(id, { include: [includeProveedores] });
 
         if (!insumo) {
             const error = new Error(`El insumo con ID ${id} no existe`);
@@ -47,14 +56,22 @@ class InsumoService {
     }
 
     async create(data) {
+        const { proveedorIds, ...campos } = data;
+
         const nuevoInsumo = await models.Insumo.create({
-            nombre: data.nombre,
-            unidad: data.unidad,
-            costoPromedio: data.costoPromedio ?? 0,
-            activo: data.activo ?? true,
+            nombre: campos.nombre,
+            sku: campos.sku || null,
+            categoria: campos.categoria || null,
+            unidad: campos.unidad,
+            costoPromedio: campos.costoPromedio ?? 0,
+            activo: campos.activo ?? true,
         });
 
-        return nuevoInsumo;
+        if (Array.isArray(proveedorIds)) {
+            await nuevoInsumo.setProveedores(proveedorIds);
+        }
+
+        return this.findOne(nuevoInsumo.id);
     }
 
     async update(id, changes) {
@@ -62,6 +79,8 @@ class InsumoService {
 
         const camposPermitidos = [
             'nombre',
+            'sku',
+            'categoria',
             'unidad',
             'costoPromedio',
             'activo',
@@ -75,7 +94,7 @@ class InsumoService {
             }
         }
 
-        if (Object.keys(datosActualizar).length === 0) {
+        if (Object.keys(datosActualizar).length === 0 && !Array.isArray(changes.proveedorIds)) {
             const error = new Error('Debes enviar al menos un campo para actualizar');
             error.statusCode = 400;
             throw error;
@@ -83,7 +102,11 @@ class InsumoService {
 
         await insumo.update(datosActualizar);
 
-        return insumo;
+        if (Array.isArray(changes.proveedorIds)) {
+            await insumo.setProveedores(changes.proveedorIds);
+        }
+
+        return this.findOne(id);
     }
 }
 

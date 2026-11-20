@@ -1,5 +1,6 @@
 
 const express = require('express');
+const passport = require('passport');
 
 const {
     getVentasController,
@@ -17,7 +18,15 @@ const {
     validationSchema,
 } = require('../middlewares/validation.schema');
 
+const { checkRoles } = require('../middlewares/auth.handle');
+
 const router = express.Router();
+
+// Ventas: operación de caja y supervisión.
+router.use(
+    passport.authenticate('jwt', { session: false }),
+    checkRoles('admin', 'gerente', 'cajero')
+);
 
 router.get(
     '/',

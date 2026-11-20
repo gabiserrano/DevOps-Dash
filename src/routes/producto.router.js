@@ -21,7 +21,7 @@ productoRouter.use(passport.authenticate('jwt', { session: false }))
 
 productoRouter.get(
   '/',
-  checkRoles('admin', 'cajero', 'comprador'),
+  checkRoles('admin', 'gerente', 'cajero', 'barista', 'compras'),
   validationSchema(queryProducto, 'query'),
   getProductosController
 );

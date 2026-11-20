@@ -28,8 +28,14 @@ class VentaService {
         const options = {
             where: {},
             include: [
-                { association: 'detalles' },
-                { association: 'pagos' },
+                {
+                    association: 'detalles',
+                    include: [{ association: 'producto', attributes: ['id', 'nombre', 'tipo'] }],
+                },
+                {
+                    association: 'pagos',
+                    include: [{ association: 'metodoPago', attributes: ['id', 'nombre', 'esEfectivo'] }],
+                },
                 { association: 'cliente', attributes: ['id', 'nombre', 'nit', 'nrc'] },
             ],
             order: [['id', 'DESC']],

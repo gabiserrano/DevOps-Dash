@@ -179,6 +179,22 @@ JOIN empleados e ON e.dui = v.dui
 JOIN roles r ON r.nombre = e.puesto;
 
 -- ---------------------------------------------------------------------
+-- usuario administrador del sistema (rol 'admin'; contraseña: Origenes2026)
+-- El puesto del empleado sigue siendo 'gerente' porque el CHECK de la tabla
+-- solo admite barista/cajero/gerente; el rol efectivo se define aquí.
+-- ---------------------------------------------------------------------
+INSERT INTO empleados (sucursal_id, nombres, apellidos, dui, nit, puesto, salario_mensual, fecha_contratacion)
+VALUES (1, 'Administrador', 'General', '09999999-9', NULL, 'gerente', 1500.00, '2024-01-01');
+
+INSERT INTO usuarios (empleado_id, sucursal_id, rol_id, email, password_hash)
+SELECT e.id, e.sucursal_id, r.id, 'admin@origenes.sv',
+       '$2b$10$xGN7XUkrP/MD4BbANMuIpugFfN6xBdKbHHAkl4RhYDwWnWg9t6Rge'
+FROM empleados e
+JOIN roles r ON r.nombre = 'admin'
+WHERE e.dui = '09999999-9';
+
+
+-- ---------------------------------------------------------------------
 -- provedores (no reales)
 -- ---------------------------------------------------------------------
 INSERT INTO proveedores (nombre, nit, nrc, telefono, email, direccion, dias_credito)
@@ -196,3 +212,23 @@ VALUES
   ('Comercial Los Pinos, S.A. de C.V.',   '0614-020220-102-6', '222222-2', 'Comercio al por menor',    'Antiguo Cuscatlán', 'admin@lospinos.sv');
 
 
+
+-- ---------------------------------------------------------------------
+-- inventario extendido: SKU, categorías y proveedores por insumo
+-- ---------------------------------------------------------------------
+INSERT INTO categorias (nombre)
+SELECT DISTINCT categoria FROM productos WHERE categoria IS NOT NULL
+ON CONFLICT (nombre) DO NOTHING;
+
+UPDATE insumos SET sku = 'INS-' || LPAD(id::text, 4, '0') WHERE sku IS NULL;
+UPDATE insumos SET categoria = 'Materia prima' WHERE categoria IS NULL;
+UPDATE productos SET sku = 'PRD-' || LPAD(id::text, 4, '0') WHERE sku IS NULL;
+
+INSERT INTO insumo_proveedores (insumo_id, proveedor_id)
+SELECT i.id, p.id
+FROM insumos i
+CROSS JOIN proveedores p
+WHERE (i.nombre = 'Café de especialidad' AND p.nombre LIKE 'Distribuidora de Café%')
+   OR (i.nombre IN ('Leche entera', 'Queso', 'Mantequilla') AND p.nombre LIKE 'Lácteos%')
+   OR (i.unidad = 'und' AND p.nombre LIKE 'Empaques%')
+ON CONFLICT DO NOTHING;

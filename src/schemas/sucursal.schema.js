@@ -24,8 +24,16 @@ const getSucursal = joi.object({
     id: id.required(),
 });
 
+const querySucursal = joi.object({
+    limit: joi.number().integer().min(1).max(100),
+    offset: joi.number().integer().min(0),
+    activa: joi.boolean(),
+    search: joi.string().max(100),
+});
+
 module.exports = {
     createSucursal,
     updateSucursal,
     getSucursal,
+    querySucursal,
 };

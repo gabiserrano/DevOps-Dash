@@ -102,7 +102,10 @@ async function registrarEntradaCompra(models, { sucursalId, insumo, cantidadEsca
     const nuevoStockSucursal = stockSucursalActual + cantidadEscalada;
 
     await inventario.update(
-        { stockActual: cantidadATexto(nuevoStockSucursal) },
+        {
+            stockActual: cantidadATexto(nuevoStockSucursal),
+            actualizadoEn: new Date(),
+        },
         { transaction }
     );
 
@@ -132,7 +135,7 @@ async function descontarSalidaVenta(models, { sucursalId, consumoPorInsumo, vent
             sucursalId,
             insumoId: { [Op.in]: insumoIds },
         },
-        include: [{ association: 'insumo', attributes: ['id', 'nombre', 'unidad'] }],
+        include: [{ association: 'insumo', attributes: ['id', 'nombre', 'unidad'], required: true }],
         transaction,
         lock: transaction.LOCK.UPDATE,
     });
@@ -156,7 +159,10 @@ async function descontarSalidaVenta(models, { sucursalId, consumoPorInsumo, vent
         const nuevoStock = escalarDesdeBd(inv.stockActual, 3) - requerido;
 
         await inv.update(
-            { stockActual: cantidadATexto(nuevoStock) },
+            {
+            stockActual: cantidadATexto(nuevoStock),
+            actualizadoEn: new Date(),
+        },
             { transaction }
         );
 
@@ -197,7 +203,10 @@ async function devolverStockAnulacion(models, { sucursalId, consumoPorInsumo, ve
         if (inv) {
             const nuevoStock = escalarDesdeBd(inv.stockActual, 3) + devolver;
             await inv.update(
-                { stockActual: cantidadATexto(nuevoStock) },
+                {
+            stockActual: cantidadATexto(nuevoStock),
+            actualizadoEn: new Date(),
+        },
                 { transaction }
             );
         }

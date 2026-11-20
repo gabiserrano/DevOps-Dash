@@ -42,7 +42,7 @@ class EmpleadoService {
                 { association: 'sucursal', attributes: ['id', 'nombre', 'activa'] },
                 {
                     association: 'usuario',
-                    attributes: ['id', 'nombre', 'email', 'activo', 'rolId'],
+                    attributes: ['id', 'email', 'activo', 'rolId'],
                     required: false,
                 },
             ],

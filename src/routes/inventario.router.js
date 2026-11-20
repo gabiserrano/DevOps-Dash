@@ -1,11 +1,12 @@
 const { Router } = require('express');
 const passport = require('passport');
 const { validationSchema } = require('../middlewares/validation.schema');
-const { checkRoles } = require('../middlewares/auth.handler');
+const { checkRoles } = require('../middlewares/auth.handle');
 const {
     getInventario,
     queryInventario,
     updateStockMinimo,
+    setStockMinimo,
     ajusteInventario,
     queryMovimientoInventario,
 } = require('../schemas/inventario.schema');
@@ -13,6 +14,7 @@ const {
     getInventariosController,
     getMovimientosInventarioController,
     updateStockMinimoController,
+    setStockMinimoController,
     registrarAjusteInventarioController,
 } = require('../controllers/inventario.controller');
 
@@ -33,6 +35,13 @@ inventarioRouter.get(
     checkRoles('admin', 'gerente', 'compras', 'barista'),
     validationSchema(queryMovimientoInventario, 'query'),
     getMovimientosInventarioController
+);
+
+inventarioRouter.patch(
+    '/minimo',
+    checkRoles('admin', 'gerente'),
+    validationSchema(setStockMinimo, 'body'),
+    setStockMinimoController
 );
 
 inventarioRouter.patch(

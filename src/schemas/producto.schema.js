@@ -14,6 +14,7 @@ const search = joi.string().max(120);
 
 const createProducto = joi.object({
     nombre: nombre.required(),
+    sku: joi.string().max(30).allow(null, ''),
     categoria,
     tipo: tipo.required(),
     precio: precio.required(),
@@ -29,6 +30,7 @@ const createProducto = joi.object({
 
 const updateProducto = joi.object({
     nombre,
+    sku: joi.string().max(30).allow(null, ''),
     categoria,
     tipo,
     precio,

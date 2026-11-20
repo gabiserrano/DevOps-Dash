@@ -51,9 +51,22 @@ CREATE TABLE usuarios (
 CREATE TABLE insumos (
   id           SERIAL PRIMARY KEY,
   nombre       VARCHAR(120) NOT NULL UNIQUE,
+  sku          VARCHAR(30) UNIQUE,
+  categoria    VARCHAR(50),
   unidad       VARCHAR(10) NOT NULL,          -- g, ml, und
   costo_promedio NUMERIC(12,4) NOT NULL DEFAULT 0,
   activo       BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE categorias (
+  id      SERIAL PRIMARY KEY,
+  nombre  VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE insumo_proveedores (
+  insumo_id     INT NOT NULL REFERENCES insumos(id) ON DELETE CASCADE,
+  proveedor_id  INT NOT NULL REFERENCES proveedores(id) ON DELETE CASCADE,
+  PRIMARY KEY (insumo_id, proveedor_id)
 );
 
 --  stock por sucursal
@@ -63,12 +76,14 @@ CREATE TABLE inventario (
   insumo_id    INT NOT NULL REFERENCES insumos(id),
   stock_actual NUMERIC(12,3) NOT NULL DEFAULT 0,
   stock_minimo NUMERIC(12,3) NOT NULL DEFAULT 0,
+  actualizado_en TIMESTAMP NOT NULL DEFAULT NOW(),
   UNIQUE (sucursal_id, insumo_id)
 );
 
 CREATE TABLE productos (
   id           SERIAL PRIMARY KEY,
   nombre       VARCHAR(120) NOT NULL UNIQUE,
+  sku          VARCHAR(30) UNIQUE,
   categoria    VARCHAR(50),
   tipo         VARCHAR(10) NOT NULL CHECK (tipo IN ('elaborado','reventa')),
   precio       NUMERIC(10,2) NOT NULL CHECK (precio >= 0),   
@@ -315,7 +330,7 @@ CREATE INDEX idx_mov_caja_caja ON movimientos_caja(caja_id);
 -- ---------------------------------------------------------------------
 -- datos base
 -- ---------------------------------------------------------------------
-INSERT INTO roles (nombre) VALUES ('gerente'), ('cajero'), ('barista');
+INSERT INTO roles (nombre) VALUES ('gerente'), ('cajero'), ('barista'), ('admin'), ('compras');
 
 INSERT INTO metodos_pago (nombre, es_efectivo) VALUES
   ('efectivo', TRUE), ('tarjeta', FALSE), ('bitcoin_chivo', FALSE);

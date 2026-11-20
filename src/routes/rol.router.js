@@ -38,14 +38,14 @@ rolRouter.get(
 
 rolRouter.post(
     '/',
-    checkRoles('gerente'),
+    checkRoles('admin', 'gerente'),
     validationSchema(createRol, 'body'),
     createRolController
 );
 
 rolRouter.patch(
     '/:id',
-    checkRoles('gerente'),
+    checkRoles('admin', 'gerente'),
     validationSchema(getRol, 'params'),
     validationSchema(updateRol, 'body'),
     updateRolController

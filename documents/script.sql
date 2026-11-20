@@ -325,8 +325,8 @@ INSERT INTO sucursales (nombre, direccion) VALUES
   ('Orígenes Escalón', 'San Salvador, Colonia Escalón');
 
 INSERT INTO correlativos (sucursal_id, tipo_doc, serie, ultimo_numero) VALUES
-  (1,'FCF','A',0), (1,'CCF','A',0),
-  (2,'FCF','A',0), (2,'CCF','A',0);
+  (1,'FCF','A',0), (2,'CCF','A',0),
+  (1,'CCF','A',0), (2,'FCF','A',0);
 
   
 
